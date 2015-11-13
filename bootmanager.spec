@@ -1,7 +1,7 @@
 #
 %define name bootmanager
 %define version 5.3
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -85,6 +85,11 @@ chmod 700 /var/log/bm
 /etc/plc.d/bootmanager
 
 %changelog
+* Fri Nov 13 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-2
+- not a noarch package anymore (indeed it does come with binaries)
+- fix ssl connection for runlevelagent for recent pythons
+- for fedora23, ignore if rsa1 key generation fails
+
 * Fri Jun 26 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-1
 - Use TLSv1 to connect to myplc, instead of SSLv3 that is known to be broken
 - Can implement 'upgrade' in addition to 'reinstall' boot state
