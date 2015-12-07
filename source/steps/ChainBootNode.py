@@ -168,17 +168,24 @@ def Run(vars, log):
             major_version = int(kversion[0]) # Check if the string looks like a kernel version
         except:
             # Try a different method for non-rpm-based distributions
-            kversion = os.popen("ls -lrt {}/lib/modules | tail -1 | awk '{print $9;}'"\
+            kversion = os.popen("ls -lrt {}/lib/modules | tail -1 | awk '{{print $9;}}'"\
                                 .format(SYSIMG_PATH)).read().rstrip()
 
-        utils.sysexec("cp {}/boot/vmlinuz-{} /tmp/kernel".format(SYSIMG_PATH, kversion), log)
-        candidates = []
+        # kernel and initrd come in various locations depending on the distro
+
+        kernel_candidates = []
+        kernel_candidates.append("/boot/vmlinux-{}*".format(kversion))
+        # on f23 starting dec. 2015 - what a twisted naming scheme
+        kernel_candidates.append("/boot/*/{}*/initrd".format(kversion))
+
+        initrd_candidates = []
         # f16/18: expect initramfs image here
-        candidates.append ("/boot/initramfs-{}.img".format(kversion))
+        initrd_candidates.append ("/boot/initramfs-{}.img".format(kversion))
         # f20: uses a uid of some kind, e.g. /boot/543f88c129de443baaa65800cf3927ce/<kversion>/initrd
-        candidates.append ("/boot/*/{}/initrd".format(kversion))
+        initrd_candidates.append ("/boot/*/{}/initrd".format(kversion))
         # Ubuntu:
-        candidates.append ("/boot/initrd.img-{}".format(kversion))
+        initrd_candidates.append ("/boot/initrd.img-{}".format(kversion))
+
         def find_file_in_sysimg (candidates):
             import glob
             for pattern in candidates:
@@ -186,7 +193,15 @@ def Run(vars, log):
                 log.write("locating initrd: found {} matches in {}\n".format(len(matches), pattern))
                 if matches:
                     return matches[0]
-        initrd = find_file_in_sysimg(candidates)
+
+        kernel = find_file_in_sysimg(kernel_candidates)
+        if kernel:
+            utils.sysexec("cp {} /tmp/kernel".format(kernel), log)
+        else:
+            raise Exception("Unable to locate kernel - bailing out")
+
+
+        initrd = find_file_in_sysimg(initrd_candidates)
         if initrd:
             utils.sysexec("cp {} /tmp/initrd".format(initrd), log)
         else:
