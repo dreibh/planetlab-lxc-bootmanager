@@ -174,9 +174,9 @@ def Run(vars, log):
         # kernel and initrd come in various locations depending on the distro
 
         kernel_candidates = []
-        kernel_candidates.append("/boot/vmlinux-{}*".format(kversion))
+        kernel_candidates.append("/boot/vmlinuz-{}*".format(kversion))
         # on f23 starting dec. 2015 - what a twisted naming scheme
-        kernel_candidates.append("/boot/*/{}*/initrd".format(kversion))
+        kernel_candidates.append("/boot/*/{}*/linux".format(kversion))
 
         initrd_candidates = []
         # f16/18: expect initramfs image here
@@ -186,26 +186,21 @@ def Run(vars, log):
         # Ubuntu:
         initrd_candidates.append ("/boot/initrd.img-{}".format(kversion))
 
-        def find_file_in_sysimg (candidates):
+        def install_from_sysimg_to_tmp (candidates, name):
             import glob
+            found = None
             for pattern in candidates:
                 matches = glob.glob(SYSIMG_PATH+pattern)
-                log.write("locating initrd: found {} matches in {}\n".format(len(matches), pattern))
+                log.write("locating {}: found {} matches in {}\n".format(name, len(matches), pattern))
                 if matches:
-                    return matches[0]
+                    found = matches[0]
+                    break
+            if not found:
+                raise Exception("Unable to locate {} for kexec'ing".format(name))
+            utils.sysexec("cp {} /tmp/{}".format(found, name))
 
-        kernel = find_file_in_sysimg(kernel_candidates)
-        if kernel:
-            utils.sysexec("cp {} /tmp/kernel".format(kernel), log)
-        else:
-            raise Exception("Unable to locate kernel - bailing out")
-
-
-        initrd = find_file_in_sysimg(initrd_candidates)
-        if initrd:
-            utils.sysexec("cp {} /tmp/initrd".format(initrd), log)
-        else:
-            raise Exception("Unable to locate initrd - bailing out")
+        install_from_sysimg_to_tmp(kernel_candidates, 'kernel')
+        install_from_sysimg_to_tmp(initrd_candidates, 'initrd')
 
     BootAPI.save(vars)
 
