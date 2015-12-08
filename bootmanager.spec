@@ -1,7 +1,7 @@
 #
 %define name bootmanager
 %define version 5.3
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -85,6 +85,11 @@ chmod 700 /var/log/bm
 /etc/plc.d/bootmanager
 
 %changelog
+* Tue Dec 08 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-3
+- patch for f23 as of dec. 2015 where kernel and initrd show up in
+- a new location under /boot
+- plus bugfix with format and single { and } for awk args
+
 * Fri Nov 13 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-2
 - not a noarch package anymore (indeed it does come with binaries)
 - fix ssl connection for runlevelagent for recent pythons
