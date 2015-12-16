@@ -77,11 +77,10 @@ class PLC:
         self.url = url
         # Using a self signed certificate
         # https://www.python.org/dev/peps/pep-0476/
-        if hasattr(ssl, '_create_unverified_context'):
-            self.api = xmlrpclib.Server(self.url, verbose=False, allow_none=True,
-                                           context=ssl._create_unverified_context())
-        else :
-            self.api = xmlrpclib.Server(self.url, verbose=False, allow_none=True)
+        try:    turn_off_server_verify = { 'context' : ssl._create_unverified_context() } 
+        except: turn_off_server_verify = {}
+        self.api = xmlrpclib.Server(self.url, verbose=False, allow_none=True,
+                                    **turn_off_server_verify)
 
     def __getattr__(self, name):
         method = getattr(self.api, name)
