@@ -1,7 +1,7 @@
 #
 %define name bootmanager
 %define version 5.3
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -85,6 +85,10 @@ chmod 700 /var/log/bm
 /etc/plc.d/bootmanager
 
 %changelog
+* Sun Jan 10 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-4
+- runlevelagent was not able to reach myplc because of
+- server verification that is now implicit in python 2.7.9
+
 * Tue Dec 08 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-3
 - patch for f23 as of dec. 2015 where kernel and initrd show up in
 - a new location under /boot
