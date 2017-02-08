@@ -158,11 +158,11 @@ def Run(vars, upgrade, log):
 
         time_beg = time.time()
         log.write("downloading {}\n".format(source_file))
-        # 30 is the connect timeout, 14400 is the max transfer time in
-        # seconds (4 hours)
+        # 120 is the connect timeout, 86400 is the max transfer time in
+        # seconds (1 day)
         result = bs_request.DownloadFile(source_file, None, None,
                                          1, 1, dest_file,
-                                         30, 14400)
+                                         120, 86400)
         time_end = time.time()
         duration = int(time_end - time_beg)
         log.write("Done downloading ({} seconds)\n".format(duration))
@@ -171,7 +171,7 @@ def Run(vars, upgrade, log):
             log.write("downloading sha1sum for {}\n".format(source_file))
             result = bs_request.DownloadFile(source_hash_file, None, None,
                                              1, 1, dest_hash_file,
-                                             30, 14400)
+                                             120, 86400)
  
             log.write("verifying sha1sum for {}\n".format(source_file))
             if not utils.check_file_hash(dest_file, dest_hash_file):
