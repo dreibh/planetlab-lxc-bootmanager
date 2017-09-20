@@ -29,7 +29,7 @@ def Run(vars, log):
     This step assumes the disks are mounted on SYSIMG_PATH.
     If successful, this function will not return. If it returns, no chain
     booting has occurred.
-    
+
     Expect the following variables:
     SYSIMG_PATH           the path where the system image will be mounted
                           (always starts with TEMP_PATH)
@@ -37,7 +37,7 @@ def Run(vars, log):
     NODE_SESSION             the unique session val set when we requested
                              the current boot state
     PLCONF_DIR               The directory to store PL configuration files in
-    
+
     Sets the following variables:
     ROOT_MOUNTED          the node root file system is mounted
     """
@@ -71,7 +71,7 @@ def Run(vars, log):
     ROOT_MOUNTED = 0
     if vars.has_key('ROOT_MOUNTED'):
         ROOT_MOUNTED = vars['ROOT_MOUNTED']
-    
+
     if ROOT_MOUNTED == 0:
         log.write("Mounting node partitions\n")
 
@@ -79,7 +79,7 @@ def Run(vars, log):
         # block devices will make them show up so vgscan can find the planetlab
         # volume group
         systeminfo.get_block_devices_dict(vars, log)
-        
+
         utils.sysexec("vgscan", log)
         utils.sysexec("vgchange -ay planetlab", log)
 
@@ -120,13 +120,14 @@ def Run(vars, log):
             log.write("conf_files failed with \n {}".format(e))
 
         # update node packages
-        log.write("Running node update.\n")
-        if os.path.exists(SYSIMG_PATH + "/usr/bin/NodeUpdate.py"):
-            cmd = "/usr/bin/NodeUpdate.py start noreboot"
-        else:
+        #log.write("Running node update.\n")
+        #if os.path.exists(SYSIMG_PATH + "/usr/bin/NodeUpdate.py"):
+        #    cmd = "/usr/bin/NodeUpdate.py start noreboot"
+        #else:
             # for backwards compatibility
-            cmd = "/usr/local/planetlab/bin/NodeUpdate.py start noreboot"
-        utils.sysexec_chroot(SYSIMG_PATH, cmd, log)
+        #    cmd = "/usr/local/planetlab/bin/NodeUpdate.py start noreboot"
+        #utils.sysexec_chroot(SYSIMG_PATH, cmd, log)
+        log.write("NodeUpdate skipped\n")
 
     # Re-generate initrd right before kexec call
     # this is not required anymore on recent depls.
@@ -205,7 +206,7 @@ def Run(vars, log):
     BootAPI.save(vars)
 
     log.write("Unmounting disks.\n")
-    
+
     if (vars['ONE_PARTITION'] != '1'):
         utils.sysexec("umount {}/vservers".format(SYSIMG_PATH), log)
     utils.sysexec("umount {}/proc".format(SYSIMG_PATH), log)
@@ -234,23 +235,23 @@ def Run(vars, log):
     # to get kexec to work correctly. Even on 3.x cds (2.6 kernel),
     # there are a few buggy drivers that don't disable their hardware
     # correctly unless they are first unloaded.
-    
+
     utils.sysexec_noerr("ifconfig eth0 down", log)
 
     utils.sysexec_noerr("killall dhclient", log)
-        
+
     if vars['virt'] == 'vs':
         utils.sysexec_noerr("umount -a -r -t ext2,ext3", log)
     else:
         utils.sysexec_noerr("umount -a -r -t ext2,ext3,btrfs", log)
     utils.sysexec_noerr("modprobe -r lvm-mod", log)
-    
+
     # modules that should not get unloaded
     # unloading cpqphp causes a kernel panic
     blacklist = [ "floppy", "cpqphp", "i82875p_edac", "mptspi"]
     try:
         modules = file("/tmp/loadedmodules","r")
-        
+
         for line in modules:
             module = string.strip(line)
             if module in blacklist :
@@ -320,7 +321,7 @@ def Run(vars, log):
     except IOError:
         # /kargs.txt does not exist, which is fine. Just kexec with default
         # kargs, which is ramdisk_size=8192
-        pass 
+        pass
 
     utils.sysexec_noerr('hwclock --systohc --utc ', log)
 #    utils.breakpoint("Before kexec");
