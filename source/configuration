@@ -82,7 +82,7 @@ MINIMUM_DISK_SIZE=17
 # total minimum disk size in GB if all usable disks are below this
 # size, the node cannot be installed
 vs_TOTAL_MINIMUM_DISK_SIZE=50
-lxc_TOTAL_MINIMUM_DISK_SIZE=120
+lxc_TOTAL_MINIMUM_DISK_SIZE=80
 
 
 # set of langugase for install (used in /etc/rpm/macros)
