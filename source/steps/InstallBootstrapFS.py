@@ -111,11 +111,11 @@ def Run(vars, upgrade, log):
         utils.sysexec("mount -t {} {} {}/vservers"\
                       .format(fstype, PARTITIONS["vservers"], SYSIMG_PATH), log)
 
-        if vars['virt']=='lxc':
+        #if vars['virt']=='lxc':
             # NOTE: btrfs quota is supported from version: >= btrfs-progs-0.20 (f18+)
             #       older versions will not recongize the 'quota' command.
-            log.write("Enabling btrfs quota on {}/vservers\n".format(SYSIMG_PATH))
-            utils.sysexec_noerr("btrfs quota enable {}/vservers".format(SYSIMG_PATH))
+            #log.write("Enabling btrfs quota on {}/vservers\n".format(SYSIMG_PATH))
+            #utils.sysexec_noerr("btrfs quota enable {}/vservers".format(SYSIMG_PATH))
 
     vars['ROOT_MOUNTED'] = 1
 

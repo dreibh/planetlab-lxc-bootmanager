@@ -54,11 +54,11 @@ PLCONF_DIR=/etc/planetlab
 # after the root and swap has been created, remaining
 # goes to the vserver partition
 vs_ROOT_SIZE=14G
-lxc_ROOT_SIZE=70G
+lxc_ROOT_SIZE=12G
 
 
 # override the swap size
-SWAP_SIZE=1G
+SWAP_SIZE=4G
 
 
 # in raw disk mode, the size of /vservers
@@ -82,7 +82,7 @@ MINIMUM_DISK_SIZE=17
 # total minimum disk size in GB if all usable disks are below this
 # size, the node cannot be installed
 vs_TOTAL_MINIMUM_DISK_SIZE=50
-lxc_TOTAL_MINIMUM_DISK_SIZE=80
+lxc_TOTAL_MINIMUM_DISK_SIZE=50
 
 
 # set of langugase for install (used in /etc/rpm/macros)
