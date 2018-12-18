@@ -120,7 +120,8 @@ def Run(vars, log, last_resort = True):
     # start sshd
     if not os.path.isfile(sshd_started_flag):
         log.write("Starting sshd\n")
-        utils.sysexec("service sshd start", log)
+        utils.sysexec("service sshd start || systemctl start sshd",
+                      log, shell=True)
         # flag that ssh is running
         utils.sysexec("touch {}".format(sshd_started_flag), log)
     else:

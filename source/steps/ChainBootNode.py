@@ -236,7 +236,8 @@ def Run(vars, log):
     # there are a few buggy drivers that don't disable their hardware
     # correctly unless they are first unloaded.
 
-    utils.sysexec_noerr("ifconfig eth0 down", log)
+    utils.sysexec_noerr("ifconfig eth0 down || /usr/libexec/nm-ifdown eth0",
+                        log, shell=True)
 
     utils.sysexec_noerr("killall dhclient", log)
 
