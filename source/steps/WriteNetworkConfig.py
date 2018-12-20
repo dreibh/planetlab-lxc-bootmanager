@@ -68,7 +68,7 @@ def Run(vars, log):
     SYSIMG_PATH             the path where the system image will be mounted
                                 (always starts with TEMP_PATH)
     INTERFACES              All the interfaces associated with this node
-    INTERFACE_SETTINGS      dictionary 
+    INTERFACE_SETTINGS      dictionary
     Sets the following variables:
     None
     """
@@ -111,7 +111,7 @@ def Run(vars, log):
     log.write("Writing /etc/planetlab/plc_config\n")
     utils.makedirs("{}/etc/planetlab".format(SYSIMG_PATH))
     with open("{}/etc/planetlab/plc_config".format(SYSIMG_PATH), "w") as plc_config:
-    
+
         api_url = vars['BOOT_API_SERVER']
         (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(api_url)
         parts = netloc.split(':')
@@ -143,9 +143,10 @@ def Run(vars, log):
         hosts_file.write("127.0.0.1       localhost\n")
         if method == "static":
             hosts_file.write("{} {}.{}\n".format(ip, hostname, domainname))
-    
-    data =  {'hostname': '{}.{}'.format(hostname, domainname),
-             'networks': vars['INTERFACES']}
-    plnet.InitInterfaces(logger(log), BootAPIWrap(vars), data, SYSIMG_PATH,
-                         True, "BootManager")
 
+    data =  {'hostname': '{}.{}'.format(hostname, domainname),
+             'interfaces': vars['INTERFACES']}
+    plnet.InitInterfaces(
+        logger(log), BootAPIWrap(vars),
+        data, SYSIMG_PATH,
+        files_only=True, program="BootManager")
