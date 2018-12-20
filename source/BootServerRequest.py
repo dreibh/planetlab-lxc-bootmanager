@@ -8,7 +8,8 @@
 
 from __future__ import print_function
 
-import os, sys
+import sys
+import os
 import re
 import string
 import urllib
@@ -55,7 +56,7 @@ class BootServerRequest:
 
         self.VERBOSE = verbose
         self.VARS = vars
-            
+
         # see if we have a boot cd mounted by checking for the version file
         # if HAS_BOOTCD == 0 then either the machine doesn't have
         # a boot cd, or something else is mounted
@@ -65,12 +66,12 @@ class BootServerRequest:
             self.Message("Checking existance of boot cd on {}".format(path))
 
             os.system("/bin/mount {} > /dev/null 2>&1".format(path))
-                
+
             version_file = self.VARS['BOOTCD_VERSION_FILE'].format(path=path)
             self.Message("Looking for version file {}".format(version_file))
 
             if os.access(version_file, os.R_OK) == 0:
-                self.Message("No boot cd found.");
+                self.Message("No boot cd found.")
             else:
                 self.Message("Found boot cd.")
                 self.HAS_BOOTCD = 1
@@ -80,22 +81,22 @@ class BootServerRequest:
 
             # check the version of the boot cd, and locate the certs
             self.Message("Getting boot cd version.")
-        
+
             versionRegExp = re.compile(r"PlanetLab BootCD v(\S+)")
-                
+
             bootcd_version_f = file(version_file, "r")
             line = string.strip(bootcd_version_f.readline())
             bootcd_version_f.close()
-            
+
             match = versionRegExp.findall(line)
             if match:
                 (self.BOOTCD_VERSION) = match[0]
-            
+
             # right now, all the versions of the bootcd are supported,
             # so no need to check it
-            
+
             self.Message("Getting server from configuration")
-            
+
             bootservers = [ self.VARS['BOOT_SERVER'] ]
             for bootserver in bootservers:
                 bootserver = string.strip(bootserver)
@@ -128,7 +129,7 @@ class BootServerRequest:
         # see if we have any proxy info from the machine
         self.USE_PROXY = 0
         self.Message("Checking existance of proxy config file...")
-        
+
         if os.access(self.VARS['PROXY_FILE'], os.R_OK) and \
                os.path.isfile(self.VARS['PROXY_FILE']):
             self.PROXY = string.strip(file(self.VARS['PROXY_FILE'], 'r').readline())
@@ -151,9 +152,9 @@ class BootServerRequest:
 
     def MakeRequest(self, PartialPath, GetVars,
                     PostVars, DoSSL, DoCertCheck,
-                    ConnectTimeout = DEFAULT_CURL_CONNECT_TIMEOUT,
-                    MaxTransferTime = DEFAULT_CURL_MAX_TRANSFER_TIME,
-                    FormData = None):
+                    ConnectTimeout=DEFAULT_CURL_CONNECT_TIMEOUT,
+                    MaxTransferTime=DEFAULT_CURL_MAX_TRANSFER_TIME,
+                    FormData=None):
 
         fd, buffer_name = tempfile.mkstemp("MakeRequest-XXXXXX")
         os.close(fd)
@@ -180,7 +181,7 @@ class BootServerRequest:
             os.unlink(buffer_name)
         except OSError:
             pass
-            
+
         return ret
 
     def DownloadFile(self, PartialPath, GetVars, PostVars,
@@ -211,7 +212,7 @@ class BootServerRequest:
             dopostdata = 1
             postdata = urllib.urlencode(PostVars)
             self.Message("Posting data:\n{}\n".format(postdata))
-            
+
         getstr = ""
         if GetVars:
             getstr = "?" + urllib.urlencode(GetVars)
@@ -223,20 +224,20 @@ class BootServerRequest:
             cert_list = self.MONITORSERVER_CERTS
         else:
             cert_list = self.BOOTSERVER_CERTS
-        
+
         for server in cert_list:
             self.Message("Contacting server {}.".format(server))
-                        
+
             certpath = cert_list[server]
 
-            
+
             # output what we are going to be doing
             self.Message("Connect timeout is {} seconds".format(ConnectTimeout))
             self.Message("Max transfer time is {} seconds".format(MaxTransferTime))
 
             if DoSSL:
                 url = "https://{}/{}{}".format(server, PartialPath, getstr)
-                
+
                 if DoCertCheck:
                     self.Message("Using SSL version {} and verifying peer."
                                  .format(self.CURL_SSL_VERSION))
@@ -245,9 +246,9 @@ class BootServerRequest:
                                  .format(self.CURL_SSL_VERSION))
             else:
                 url = "http://{}/{}{}".format(server, PartialPath, getstr)
-                
+
             self.Message("URL: {}".format(url))
-            
+
             # setup a new pycurl instance
             curl = pycurl.Curl()
 
@@ -265,13 +266,13 @@ class BootServerRequest:
 
             if DoSSL:
                 curl.setopt(pycurl.SSLVERSION, self.CURL_SSL_VERSION)
-                
+
                 if DoCertCheck:
                     curl.setopt(pycurl.CAINFO, certpath)
                     curl.setopt(pycurl.SSL_VERIFYPEER, 2)
                 else:
                     curl.setopt(pycurl.SSL_VERIFYPEER, 0)
-                
+
             if dopostdata:
                 curl.setopt(pycurl.POSTFIELDS, postdata)
 
@@ -283,19 +284,19 @@ class BootServerRequest:
 
             try:
                 # setup the output file
-                with open(DestFilePath,"wb") as outfile:
-                
+                with open(DestFilePath, "wb") as outfile:
+
                     self.Message("Opened output file {}".format(DestFilePath))
-            
+
                     curl.setopt(pycurl.WRITEDATA, outfile)
-            
+
                     self.Message("Fetching...")
                     curl.perform()
                     self.Message("Done.")
-            
+
                     http_result = curl.getinfo(pycurl.HTTP_CODE)
                     curl.close()
-            
+
                 self.Message("Results saved in {}".format(DestFilePath))
 
                 # check the code, return 1 if successfull
@@ -310,7 +311,7 @@ class BootServerRequest:
                 errno, errstr = err
                 self.Error("connect to {} failed; curl error {}: '{}'\n"
                            .format(server, errno, errstr))
-    
+
         self.Error("Unable to successfully contact any boot servers.\n")
         return 0
 
@@ -326,13 +327,13 @@ Options:
  -o/--output <file>    Write result to file
  -s/--ssl              Make the request over HTTPS
  -v                    Makes the operation more talkative
-""");  
+""");
 
 
 
 if __name__ == "__main__":
     import getopt
-    
+
     # check out our command line options
     try:
         opt_list, arg_list = getopt.getopt(sys.argv[1:],
@@ -344,15 +345,15 @@ if __name__ == "__main__":
         checkcert = 0
         output_file = None
         verbose = 0
-        
+
         for opt, arg in opt_list:
             if opt in ("-h","--help"):
                 usage(0)
                 sys.exit()
-            
+
             if opt in ("-c","--checkcert"):
                 checkcert = 1
-            
+
             if opt in ("-s","--ssl"):
                 ssl = 1
 
@@ -361,7 +362,7 @@ if __name__ == "__main__":
 
             if opt == "-v":
                 verbose = 1
-    
+
         if len(arg_list) != 1:
             raise Exception
 
@@ -375,10 +376,10 @@ if __name__ == "__main__":
 
     # got the command line args straightened out
     requestor = BootServerRequest(verbose)
-        
+
     if output_file:
         requestor.DownloadFile(partialpath, None, None, ssl,
-                                checkcert, output_file)
+                               checkcert, output_file)
     else:
         result = requestor.MakeRequest(partialpath, None, None, ssl, checkcert)
         if result:
