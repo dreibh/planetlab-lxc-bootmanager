@@ -114,7 +114,10 @@ def Run(vars, log):
 
     if (vars['ONE_PARTITION'] != '1'):
         try:
-            cmd = "/usr/bin/env python /usr/share/NodeManager/conf_files.py --noscripts"
+            # used to call /usr/bin/env python here, but as nodemanager
+            # now exists both in python2 and python3, we use a shebang
+            # in conf_files instead
+            cmd = "/usr/share/NodeManager/conf_files.py --noscripts"
             utils.sysexec_chroot(SYSIMG_PATH, cmd, log)
         except IOError as e:
             log.write("conf_files failed with \n {}".format(e))
