@@ -213,7 +213,7 @@ def sysexec_chroot_noerr(path, cmd, log=None, shell=False):
     """
     try:
         rc = 0
-        rc = sysexec_chroot(cmd, log, shell=shell)
+        rc = sysexec_chroot(path, cmd, log, shell=shell)
     except BootManagerException as e:
         pass
 
