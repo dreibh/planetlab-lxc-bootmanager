@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Copyright (c) 2003 Intel Corporation
 # All rights reserved.
@@ -7,13 +6,14 @@
 # All rights reserved.
 # expected /proc/partitions format
 
+# pylint: disable=c0111, c0103
+
 import os
 import os.path
 
 from Exceptions import *
 import utils
-import BootAPI
-import ModelOptions
+
 
 def Run(vars, log):
 
@@ -24,7 +24,7 @@ def Run(vars, log):
     /etc/ssh/ssh_host_key
     /etc/ssh/ssh_host_rsa_key
     /etc/ssh/ssh_host_dsa_key
-    
+
     Expect the following variables from the store:
     VERSION                 the version of the install
     SYSIMG_PATH             the path where the system image will be mounted
@@ -36,11 +36,11 @@ def Run(vars, log):
                                 configuration file
     Sets the following variables:
     None
-    
+
     """
 
-    log.write( "\n\nStep: Install: Writing configuration files.\n")
-    
+    log.write("\n\nStep: Install: Writing configuration files.\n")
+
     # make sure we have the variables we need
     try:
         VERSION = vars["VERSION"]
@@ -52,7 +52,7 @@ def Run(vars, log):
             raise ValueError("SYSIMG_PATH")
 
         PARTITIONS = vars["PARTITIONS"]
-        if PARTITIONS == None:
+        if PARTITIONS is None:
             raise ValueError("PARTITIONS")
 
         PLCONF_DIR = vars["PLCONF_DIR"]
@@ -63,13 +63,14 @@ def Run(vars, log):
         if INTERFACE_SETTINGS == "":
             raise ValueError("INTERFACE_SETTINGS")
 
-    except KeyError, var:
+    except KeyError as var:
         raise BootManagerException("Missing variable in vars: {}\n".format(var))
-    except ValueError, var:
+    except ValueError as var:
         raise BootManagerException("Variable in vars, shouldn't be: {}\n".format(var))
 
     log.write("Setting local time to UTC\n")
-    utils.sysexec_chroot(SYSIMG_PATH,
+    utils.sysexec_chroot(
+        SYSIMG_PATH,
         "ln -sf /usr/share/zoneinfo/UTC /etc/localtime", log)
 
     log.write("Creating system directory {}\n".format(PLCONF_DIR))
@@ -78,29 +79,27 @@ def Run(vars, log):
         return 0
 
     log.write("Writing system /etc/fstab\n")
-    fstab = file("{}/etc/fstab".format(SYSIMG_PATH), "w")
-    fstab.write("{}           none        swap      sw        0 0\n"\
-                .format(PARTITIONS["swap"]))
-    fstab.write("{}           /           ext3      defaults  1 1\n"\
-                .format(PARTITIONS["root"]))
-    if (vars['ONE_PARTITION'] != '1'):
-        if vars['virt'] == 'vs':
-            fstab.write("{}           /vservers   ext3      tagxid,defaults  1 2\n"\
-                        .format(PARTITIONS["vservers"]))
-        else:
-            fstab.write("{}           /vservers   btrfs     defaults  1 2\n"\
-                        .format(PARTITIONS["vservers"]))
-    fstab.write("none         /proc       proc      defaults  0 0\n")
-    fstab.write("none         /dev/shm    tmpfs     defaults  0 0\n")
-    fstab.write("none         /dev/pts    devpts    defaults  0 0\n")
-    fstab.close()
+    with open("{}/etc/fstab".format(SYSIMG_PATH), "w") as fstab:
+        fstab.write("{}           none        swap      sw        0 0\n"\
+                    .format(PARTITIONS["swap"]))
+        fstab.write("{}           /           ext3      defaults  1 1\n"\
+                    .format(PARTITIONS["root"]))
+        if (vars['ONE_PARTITION'] != '1'):
+            if vars['virt'] == 'vs':
+                fstab.write("{}           /vservers   ext3      tagxid,defaults  1 2\n"\
+                            .format(PARTITIONS["vservers"]))
+            else:
+                fstab.write("{}           /vservers   btrfs     defaults  1 2\n"\
+                            .format(PARTITIONS["vservers"]))
+        fstab.write("none         /proc       proc      defaults  0 0\n")
+        fstab.write("none         /dev/shm    tmpfs     defaults  0 0\n")
+        fstab.write("none         /dev/pts    devpts    defaults  0 0\n")
 
     log.write("Writing system /etc/issue\n")
-    issue= file("{}/etc/issue".format(SYSIMG_PATH), "w")
-    issue.write("PlanetLab Node: \\n\n")
-    issue.write("Kernel \\r on an \\m\n")
-    issue.write("http://www.planet-lab.org\n\n")
-    issue.close()
+    with open("{}/etc/issue".format(SYSIMG_PATH), "w") as issue:
+        issue.write("PlanetLab Node: \\n\n")
+        issue.write("Kernel \\r on an \\m\n")
+        issue.write("http://www.planet-lab.org\n\n")
 
     if (vars['ONE_PARTITION'] != '1'):
         log.write("Setting up authentication (non-ssh)\n")
@@ -119,17 +118,16 @@ def Run(vars, log):
         method = vars['INTERFACE_SETTINGS']['method']
     except:
         pass
-    
+
     if method == "dhcp":
         utils.sysexec("cp /etc/resolv.conf {}/etc/".format(SYSIMG_PATH), log)
 
     log.write("Writing node install_version\n")
     utils.makedirs("{}/etc/planetlab".format(SYSIMG_PATH))
-    ver = file("{}/etc/planetlab/install_version".format(SYSIMG_PATH), "w")
-    ver.write("{}\n".format(VERSION))
-    ver.close()
+    with open("{}/etc/planetlab/install_version".format(SYSIMG_PATH), "w") as ver:
+        ver.write("{}\n".format(VERSION))
 
-    # for upgrades : do not overwrite already existing keys 
+    # for upgrades : do not overwrite already existing keys
     log.write("Creating ssh host keys\n")
     key_gen_prog = "/usr/bin/ssh-keygen"
 
@@ -153,9 +151,12 @@ def Run(vars, log):
             else:
                 run = utils.sysexec_noerr
                 run_chroot = utils.sysexec_chroot_noerr
-            run_chroot(SYSIMG_PATH, "{} -q -t {} -f {} -C '' -N ''"\
-                                    .format(key_gen_prog, key_type, key_file), log)
+            run_chroot(
+                SYSIMG_PATH,
+                "{} -q -t {} -f {} -C '' -N ''"
+                .format(key_gen_prog, key_type, key_file),
+                log)
             run("chmod 600 {}/{}".format(SYSIMG_PATH, key_file), log)
             run("chmod 644 {}/{}.pub".format(SYSIMG_PATH, key_file), log)
-                
+
     return 1

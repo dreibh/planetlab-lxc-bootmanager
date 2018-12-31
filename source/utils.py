@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Copyright (c) 2003 Intel Corporation
 # All rights reserved.
@@ -7,28 +6,29 @@
 # All rights reserved.
 # expected /proc/partitions format
 
+# pylint: disable=c0111
+
 from __future__ import print_function
 
-import os, sys, shutil
+import sys
+import os
+import shutil
 import subprocess
 import shlex
 import socket
 import fcntl
-import string
-import exceptions
+# handling breakpoints in the startup process
+import select
 
 from Exceptions import *
 
 ####################
-# the simplest way to debug is to let the node take off, 
+# the simplest way to debug is to let the node take off,
 # ssh into it as root using the debug ssh key in /etc/planetlab
-# then go to /tmp/source 
+# then go to /tmp/source
 # edit this file locally to turn on breakpoints if needed, then run
 # ./BootManager.py
 ####################
-
-### handling breakpoints in the startup process
-import select, sys, string
 
 ### global debugging settings
 
@@ -53,15 +53,15 @@ def prompt_for_breakpoint_mode():
             display = "[y]/n"
         else:
             display = "y/[n]"
-        sys.stdout.write ("Want to run in breakpoint mode ? {} ".format(display))
+        sys.stdout.write("Want to run in breakpoint mode ? {} ".format(display))
         sys.stdout.flush()
-        r, w, e = select.select ([sys.stdin], [], [], PROMPT_TIMEOUT)
+        r, w, e = select.select([sys.stdin], [], [], PROMPT_TIMEOUT)
         if r:
-            answer = string.strip(sys.stdin.readline())
+            answer = sys.stdin.readline().strip()
         else:
             sys.stdout.write("\nTimed-out ({}s)".format(PROMPT_TIMEOUT))
         if answer:
-            BREAKPOINT_MODE = (answer == "y" or answer == "Y")
+            BREAKPOINT_MODE = (answer in 'yY')
         else:
             BREAKPOINT_MODE = default_answer
     label = "Off"
@@ -69,7 +69,7 @@ def prompt_for_breakpoint_mode():
         label = "On"
     sys.stdout.write("\nCurrent BREAKPOINT_MODE is {}\n".format(label))
 
-def breakpoint (message, cmd = None):
+def breakpoint (message, cmd=None):
 
     if BREAKPOINT_MODE:
 
@@ -81,7 +81,7 @@ def breakpoint (message, cmd = None):
         os.system(cmd)
 
     else:
-        print("Ignoring breakpoint (BREAKPOINT_MODE=False) : {}".format(message))    
+        print("Ignoring breakpoint (BREAKPOINT_MODE=False) : {}".format(message))
 
 
 ########################################
@@ -105,7 +105,7 @@ def makedirs(path):
         os.listdir(path)
     except OSError:
         raise BootManagerException("Unable to create directory tree: {}".format(path))
-    
+
     return 1
 
 
@@ -122,9 +122,9 @@ def removedir(path):
 
     try:
         shutil.rmtree(path)
-    except OSError as desc:
+    except OSError:
         raise BootManagerException("Unable to remove directory tree: {}".format(path))
-    
+
     return 1
 
 
@@ -173,16 +173,16 @@ def sysexec(cmd, log=None, fsck=False, shell=False):
     returncode = prog.wait()
 
     if fsck:
-       # The exit code returned by fsck is the sum of the following conditions:
-       #      0    - No errors
-       #      1    - File system errors corrected
-       #      2    - System should be rebooted
-       #      4    - File system errors left uncorrected
-       #      8    - Operational error
-       #      16   - Usage or syntax error
-       #      32   - Fsck canceled by user request
-       #      128  - Shared library error
-       if returncode != 0 and returncode != 1:
+        # The exit code returned by fsck is the sum of the following conditions:
+        #      0    - No errors
+        #      1    - File system errors corrected
+        #      2    - System should be rebooted
+        #      4    - File system errors left uncorrected
+        #      8    - Operational error
+        #      16   - Usage or syntax error
+        #      32   - Fsck canceled by user request
+        #      128  - Shared library error
+        if returncode not in (0, 1):
             raise BootManagerException("Running {} failed (rc={})".format(cmd, returncode))
     else:
         if returncode != 0:
@@ -196,15 +196,7 @@ def sysexec_chroot(path, cmd, log=None, shell=False):
     """
     same as sysexec, but inside a chroot
     """
-    preload = ""
-    release = os.uname()[2]
-    # 2.6.12 kernels need this
-    if release[:5] == "2.6.1":
-        library = "{}/lib/libc-opendir-hack.so".format(path)
-        if not os.path.exists(library):
-            shutil.copy("./libc-opendir-hack.so", library)
-        preload = "/bin/env LD_PRELOAD=/lib/libc-opendir-hack.so"
-    sysexec("chroot {} {} {}".format(path, preload, cmd), log, shell=shell)
+    return sysexec("chroot {} {}".format(path, cmd), log, shell=shell)
 
 
 def sysexec_chroot_noerr(path, cmd, log=None, shell=False):
@@ -268,11 +260,11 @@ def get_mac_from_interface(ifname):
     given a device name, like eth0, return its mac_address.
     return None if the device doesn't exist.
     """
-    
+
     SIOCGIFHWADDR = 0x8927 # magic number
 
-    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    ifname = string.strip(ifname)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ifname = ifname.strip()
     ifr = ifname + '\0'*(32-len(ifname))
 
     try:
@@ -280,7 +272,7 @@ def get_mac_from_interface(ifname):
         ret = ':'.join(["{:02x}".format(ord(n)) for n in r[18:24]])
     except IOError as e:
         ret = None
-        
+
     return ret
 
 def check_file_hash(filename, hash_filename):
