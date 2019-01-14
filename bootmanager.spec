@@ -1,7 +1,7 @@
 #
 %define name bootmanager
-%define version 5.3
-%define taglevel 4
+%define version 6.0
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -85,6 +85,18 @@ chmod 700 /var/log/bm
 /etc/plc.d/bootmanager
 
 %changelog
+* Mon Jan 07 2019 Thierry <Parmentelat> - bootmanager-6.0-0
+- * this is STILL BASED ON PYTHON2, but relies on 2 accessory libraries that are pypcilib and pyplnet
+- for this reason, the relevant files are COPIED at packaging time
+- * new settings lxc_ROOT_SIZE=12G (was 70G) and SWAP_SIZE=4G (was 1G)
+- and lxc_TOTAL_MINIMUM_DISK_SIZE=50 (was 120)
+- * invoke conf_files.py as a plain script (i.e. expects a shebang) since we ideally can still
+- use this code against a python2 nodemanager
+- * skip nodeupdate step, will be redone later anyway
+- * rely on NetworkManager utilities when ifconfig can't be found
+- * tear down patch for very old 2.6.12 kernels
+- * a little closer to python3 though
+
 * Sun Jan 10 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - bootmanager-5.3-4
 - runlevelagent was not able to reach myplc because of
 - server verification that is now implicit in python 2.7.9

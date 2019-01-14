@@ -37,15 +37,14 @@ def create_auth_structure(vars, call_params):
 
         if not vars.has_key('NODE_SESSION'):
             # Try to load /etc/planetlab/session if it exists.
-            sessionfile = open('/etc/planetlab/session', 'r')
-            session = sessionfile.read().strip()
+            with open('/etc/planetlab/session', 'r') as sessionfile:
+                session = sessionfile.read().strip()
 
             auth_session['session'] = session
             # Test session.  Faults if it's no good.
             vars['API_SERVER_INST'].AuthCheck(auth_session)
             vars['NODE_SESSION'] = session
 
-            sessionfile.close()
         else:
             auth_session['session'] = vars['NODE_SESSION']
 
@@ -68,13 +67,13 @@ def create_auth_structure(vars, call_params):
                 session = vars['API_SERVER_INST'].GetSession(auth)
                 auth_session['session'] = session
                 vars['NODE_SESSION'] = session
-                # NOTE: save session value to /etc/planetlab/session for 
+                # NOTE: save session value to /etc/planetlab/session for
                 # RunlevelAgent and future BootManager runs
                 if not os.path.exists("/etc/planetlab"):
                     os.makedirs("/etc/planetlab")
-                sessionfile = open('/etc/planetlab/session', 'w')
-                sessionfile.write(vars['NODE_SESSION'])
-                sessionfile.close()
+                with open('/etc/planetlab/session', 'w') as sessionfile:
+                    sessionfile.write(vars['NODE_SESSION'])
+
             else:
                 auth_session['session'] = vars['NODE_SESSION']
 
@@ -83,6 +82,8 @@ def create_auth_structure(vars, call_params):
 
         except Exception as e:
             # NOTE: BM has failed to authenticate utterly.
+            import traceback
+            traceback.print_exc()
             raise BootManagerAuthenticationException("{}".format(e))
 
     return auth
@@ -99,7 +100,7 @@ def serialize_params(call_params):
     """
 
     values = []
-    
+
     for param in call_params:
         if isinstance(param,list) or isinstance(param,tuple):
             values += serialize_params(param)
@@ -115,10 +116,10 @@ def serialize_params(call_params):
                 values.append("False")
         else:
             values.append(unicode(param))
-                
+
     return values
 
-    
+
 def call_api_function(vars, function, user_params):
     """
     call the named api function with params, and return the
@@ -147,7 +148,7 @@ def call_api_function(vars, function, user_params):
     if auth is None:
         raise BootManagerException(
               "Could not create auth structure, missing values.")
-    
+
     params = (auth,)
     params = params + user_params
 
