@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #
 # Copyright (c) 2003 Intel Corporation
 # All rights reserved.
@@ -26,7 +26,7 @@ def Run(vars, log):
         # raise error if script is not present.
         os.stat(cmd)
         # init script only starts RLA once.
-        os.system("/usr/bin/python {} start bootmanager &".format(cmd))
+        os.system("/usr/bin/python2 {} start bootmanager &".format(cmd))
     except KeyError as var:
         raise BootManagerException("Missing variable in vars: {}\n".format(var))
     except ValueError as var:
