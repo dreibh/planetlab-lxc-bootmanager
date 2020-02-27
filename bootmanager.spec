@@ -23,7 +23,14 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 # this is not true anymore and fedora23 won't let us build this as noarch anymore
 # BuildArch: noarch
 
-Requires: tar, gnupg, sharutils, bzip2
+Requires: tar, sharutils, bzip2
+# see myplc/plc.d/gpg for more details on the gnupg / gpg topic
+%if "%{distro}" == "Fedora" && %{distrorelease} >= 31
+Requires: gnupg1
+%else
+Requires: gnupg
+%endif
+
 # need the apache user at install-time
 Requires: httpd 
 

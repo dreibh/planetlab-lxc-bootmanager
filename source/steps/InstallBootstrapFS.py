@@ -232,9 +232,13 @@ def Run(vars, upgrade, log):
     if (vars['ONE_PARTITION'] != '1'):
         # Import the GPG key into the RPM database so that RPMS can be verified
         utils.makedirs(SYSIMG_PATH + "/etc/pki/rpm-gpg")
-        utils.sysexec("gpg --homedir=/root --export --armor"
-                      " --no-default-keyring --keyring {}/usr/boot/pubring.gpg"
-                      " > {}/etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab".format(SYSIMG_PATH, SYSIMG_PATH), log)
+        # see also myplc/plc.d/gpg
+        utils.sysexec(
+            "type -p gpg1 >& /dev/null && GPG=gpg1 || GPG=gpg; "
+            "$GPG --homedir=/root --export --armor"
+            " --no-default-keyring --keyring {}/usr/boot/pubring.gpg"
+            " > {}/etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab"
+            .format(SYSIMG_PATH, SYSIMG_PATH), log, shell=True)
         utils.sysexec_chroot(SYSIMG_PATH, "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab", log)
 
     # keep a log on the installed hdd
