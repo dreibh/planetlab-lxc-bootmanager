@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #
 # Copyright (c) 2003 Intel Corporation
 # All rights reserved.
@@ -25,7 +25,7 @@ def Run(vars, log):
         cmd = "{}/RunlevelAgent.py".format(vars['BM_SOURCE_DIR'])
         # raise error if script is not present.
         os.stat(cmd)
-        os.system("/usr/bin/python {} stop".format(cmd))
+        os.system("/usr/bin/python2 {} stop".format(cmd))
     except KeyError as var:
         raise BootManagerException("Missing variable in vars: {}\n".format(var))
     except ValueError as var:

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #
 # RunlevelAgent - acts as a heartbeat back to myplc reporting that the node is
 #     online and whether it is in boot or pre-boot run-level.
